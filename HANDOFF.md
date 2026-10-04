@@ -70,6 +70,7 @@
 3-1. **1단계 완료 (2026-10-04, `main`):** Task 0~9와 최종 리뷰 반영까지 끝났다. commit: f204109(문서), 559e6f2(Postgres), 1b43892(NestJS·Prisma), 39d2316(규칙 분류기), 237f7f9(입력 검사·적중 집계), 402f398(API 3종), 69eaf91(server Docker), 5f34213(web·API client), 973055a(보드 화면), 4d68c24(README), 754c2ff(처리하지 못한 오류를 한국어 500으로), c2346ff(Docker 재시작 시 이전 프로세스가 남던 문제, procps 추가) — 작성자 변경 전 SHA는 aee6dd0·9764519·d6928b7·f164fec·3edf6eb·2a9e6da. 단위 29개·e2e 11개 통과. 69eaf91 이후 commit은 아직 push하지 않았다.
    - 최종 리뷰(새 context reviewer): Critical 0, Important 2(둘 다 반영), Minor 7(미뤄 둠). 2단계와 관련 있는 미룬 항목: 분류 중 입력창에 새로 친 글이 저장 성공 시 지워짐(2단계는 최대 15초), 카드에 확률 막대와 `대체 규칙` 배지 표시 필요, web과 server의 `Category`·`HitStats` 타입 중복. 그 밖: NUL·짝 없는 surrogate 입력이 400이 아니라 500, 칸 이동 select가 목록 갱신 전까지 원래 값으로 돌아감, `server/README.md`·`web/README.md` scaffold 기본 문서가 남아 있음, 루트 README에 package.json 변경 시 `--build` 안내 없음.
 3-2. **branch 운영 결정 (2026-10-04):** 1단계(리뷰 지적 반영 포함)까지는 `main`에서 바로 작업한다. 2단계부터는 작업 branch를 만들고 GitHub PR로 합친다. `push`와 PR 생성은 그 시점마다 사용자 승인을 받는다. Docker 포트(5433, 3000)가 겹치므로 별도 worktree 대신 이 폴더에서 branch를 바꿔 작업한다.
+3-3. **공유 schema 결정 (2026-10-04):** web과 server에 중복된 타입(`Category`, `MemoDto`, `HitStats`)은 2단계 전에 별도 branch·PR로 해결한다. npm workspaces의 `packages/shared`에 zod schema를 두고 server 입력 검사와 web 응답 타입이 함께 쓰는 방향을 검토한다. 중복은 Prisma 때문이 아니라 web과 server가 코드를 공유하지 않는 별개 프로젝트이기 때문이라, ORM 교체(Drizzle 등)는 하지 않는다. 시작은 사용자가 `main`을 push한 뒤 `brainstorming`부터 한다.
 4. 실제 구현 과정에서 겪은 불편을 기록해 Superpowers·gstack·개인 하네스 중 무엇이 필요한지 나중에 판단한다.
 
 ## 보안·비용 경계
