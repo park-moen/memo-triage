@@ -54,7 +54,8 @@
   - **설계 영향:** Clef-flash는 문장을 생성하지 않고, 질문 schema의 선택지별 확률을 돌려준다. 승인된 설계의 "칸 하나 + 한 문장 이유"는 이 출력과 맞지 않았다.
   - **결정 (2026-10-04):** 이유 문장을 빼고 카드에 4칸의 확률 막대를 표시한다. server가 최고 확률 칸을 고른다. 규칙 분류기는 확률 없이 일치한 키워드를 `note`로 남긴다. 테이블 `memos`의 `reason` 열은 `scores`(JSON)와 `note`로 바뀌었다. 문장 생성 모델을 한 번 더 부르는 안은 호출 수가 늘어 고르지 않았다.
   - 무료 할당량이 REST 호출에도 똑같이 적용되는지는 문서에 명시돼 있지 않다. 2단계 연결 전에 대시보드로 확인한다.
-- **원격 저장소 (2026-10-04):** `origin` = `https://github.com/park-moen/memo-triage.git`(사용자 요청으로 어시스턴트가 `git remote add`만 실행, 사용자 승인 후 `main`만 push). 저장소 local Git 사용자는 `park-moen <57402711+park-moen@users.noreply.github.com>`. 기존 commit 6개의 작성자를 이 주소로 다시 써서 SHA가 바뀌었고, `main`은 `--force-with-lease`로 다시 push했다. `feat/memo-classifier-stage1`은 아직 push하지 않았다. 이후 push 등 원격 변경은 매번 사용자 승인을 받는다. 회사(ITNew) 저장소가 아니므로 commit·MR 작업에는 `itnew-workflow:`가 아니라 `dev-workflow:` skill을 쓴다.
+- **원격 저장소 (2026-10-04):** `origin` = `https://github.com/park-moen/memo-triage.git`(사용자 요청으로 어시스턴트가 `git remote add`만 실행, 사용자 승인 후 `main`만 push). 저장소 local Git 사용자는 `park-moen <57402711+park-moen@users.noreply.github.com>`. 기존 commit 6개의 작성자를 이 주소로 다시 써서 SHA가 바뀌었고, `main`은 `--force-with-lease`로 다시 push했다. 이후 push 등 원격 변경은 매번 사용자 승인을 받는다.
+- **branch 운영 변경 (2026-10-04):** 1인 사이드 프로젝트이고 PR 리뷰·CI가 없어 `main`에서 직접 작업한다. `feat/memo-classifier-stage1`(5646142)을 `main`에 fast-forward로 합치고 push한 뒤, 로컬·원격 branch를 모두 삭제했다. 체크포인트 검토는 대화에서 한다. 회사(ITNew) 저장소가 아니므로 commit·MR 작업에는 `itnew-workflow:`가 아니라 `dev-workflow:` skill을 쓴다.
 - `PLAN.md`는 선택하지 않은 턴제 대결 후보의 초안이다. 메모 분류함 기획에는 호출 제한·실패 처리 구조만 참고한다.
 - **개발 방식:** 먼저 작은 결과물을 만들고, 실제로 부족했던 절차만 나중에 개인 하네스로 묶는다. Superpowers의 문제 탐색·작은 구현·검증 방식은 참고할 수 있다. ITNew Blueprint 전체 흐름이나 여러 skills.sh 스킬을 먼저 통합하는 일은 현재 목표가 아니다. gstack은 실제 화면 QA 등이 필요할 때 검토한다.
 - **미결정:** 실제로 넣을 메모의 종류와 쓰임, 분류 칸 구성, 구현 기술, UI 범위, 완료 기준, API 연결 시점.
@@ -65,8 +66,8 @@
 2. ~~설계 1/3·2/3·3/3 승인, 설계 문서 승인~~ 완료 (2026-10-04). 설계 문서: `docs/superpowers/specs/2026-10-04-memo-classifier-design.md`. 아직 commit하지 않음(commit 방식 미결정: `main` 첫 commit 또는 작업 branch, `PLAN.md` 포함 여부).
 3. 1단계 구현 계획 작성 완료: `docs/superpowers/plans/2026-10-04-memo-classifier-stage1.md` (Task 0~9, 사용자 검토 대기). 구현은 계획 승인과 실행 방식 선택 뒤에 시작한다.
    - **계획 승인 (2026-10-04):** 사용자가 1,795줄 계획 전문 대신 체크포인트 방식으로 검토하기로 했다. 체크포인트 1은 Task 5 뒤(API 테스트 결과, `curl` 응답, 규칙 분류기 키워드 목록), 체크포인트 2는 Task 8 뒤(화면 직접 확인). 그 사이에는 멈추지 않고 진행한다.
-   - 기본값으로 함께 확정: 설계와 다른 4가지(버전 고정, 칸 값 영문 코드, 1단계 배지 `규칙`, Postgres 포트 5433) 수용, 실행 방식 Native(`superpowers:executing-plans`), `main`에 문서 첫 commit 후 `feat/memo-classifier-stage1` branch에서 구현, `PLAN.md`는 commit하지 않고 그대로 둔다. 계획은 검증된 버전으로 고정했다: `@nestjs/cli@11.0.24`, `prisma@6.19.3`, `create-vite@9.2.1`, `postgres:17`(최신 NestJS 12·Prisma 7/8-rc·TypeScript 7은 2026-08 이후 출시라 제외). Postgres 호스트 포트는 5433.
-3-1. **1단계 진행 (2026-10-04, branch `feat/memo-classifier-stage1`):** Task 0~5 완료. `main` f204109(문서), 559e6f2(Postgres), 1b43892(NestJS·Prisma), 39d2316(규칙 분류기), 237f7f9(입력 검사·적중 집계), 402f398(API 3종) — 작성자 변경 전 SHA는 aee6dd0·9764519·d6928b7·f164fec·3edf6eb·2a9e6da. 단위 29개·e2e 9개 통과. 체크포인트 1(Task 5 뒤)에서 사용자 확인 대기 중. 진행 ledger: `.superpowers/sdd/2026-10-04-memo-classifier-stage1/progress.md`(Git 제외).
+   - 기본값으로 함께 확정: 설계와 다른 4가지(버전 고정, 칸 값 영문 코드, 1단계 배지 `규칙`, Postgres 포트 5433) 수용, 실행 방식 Native(`superpowers:executing-plans`), `main`에 문서 첫 commit 후 `feat/memo-classifier-stage1` branch에서 구현(→ 이후 `main` 직접 작업으로 바뀜, 원격 저장소 항목 아래 참고), `PLAN.md`는 commit하지 않고 그대로 둔다. 계획은 검증된 버전으로 고정했다: `@nestjs/cli@11.0.24`, `prisma@6.19.3`, `create-vite@9.2.1`, `postgres:17`(최신 NestJS 12·Prisma 7/8-rc·TypeScript 7은 2026-08 이후 출시라 제외). Postgres 호스트 포트는 5433.
+3-1. **1단계 진행 (2026-10-04, `main`):** Task 0~5 완료. `main` f204109(문서), 559e6f2(Postgres), 1b43892(NestJS·Prisma), 39d2316(규칙 분류기), 237f7f9(입력 검사·적중 집계), 402f398(API 3종) — 작성자 변경 전 SHA는 aee6dd0·9764519·d6928b7·f164fec·3edf6eb·2a9e6da. 단위 29개·e2e 9개 통과. 체크포인트 1(Task 5 뒤)에서 사용자 확인 대기 중. 진행 ledger: `.superpowers/sdd/2026-10-04-memo-classifier-stage1/progress.md`(Git 제외).
 4. 실제 구현 과정에서 겪은 불편을 기록해 Superpowers·gstack·개인 하네스 중 무엇이 필요한지 나중에 판단한다.
 
 ## 보안·비용 경계
