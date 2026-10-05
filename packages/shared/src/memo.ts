@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const CATEGORIES = ['todo', 'idea', 'check', 'reference'] as const;
-export const CategorySchema = z.enum(CATEGORIES, { error: '옮길 칸이 올바르지 않습니다.' });
+export const CategorySchema = z.enum(CATEGORIES);
 export type Category = z.infer<typeof CategorySchema>;
 
 export const CLASSIFIER_SOURCES = ['rule', 'clef-flash'] as const;
@@ -26,7 +26,7 @@ export const CreateMemoBodySchema = z.object(
 export type CreateMemoBody = z.infer<typeof CreateMemoBodySchema>;
 
 export const MoveMemoBodySchema = z.object(
-  { category: CategorySchema },
+  { category: z.enum(CATEGORIES, { error: '옮길 칸이 올바르지 않습니다.' }) },
   { error: '옮길 칸이 올바르지 않습니다.' },
 );
 export type MoveMemoBody = z.infer<typeof MoveMemoBodySchema>;

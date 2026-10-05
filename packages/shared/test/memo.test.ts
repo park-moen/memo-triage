@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CATEGORIES,
+  CategorySchema,
   CreateMemoBodySchema,
   HitStatsSchema,
   MAX_CONTENT_LENGTH,
@@ -16,6 +17,12 @@ describe('상수', () => {
   it('칸 목록과 글자 수 상한', () => {
     expect(CATEGORIES).toEqual(['todo', 'idea', 'check', 'reference']);
     expect(MAX_CONTENT_LENGTH).toBe(200);
+  });
+});
+
+describe('CategorySchema', () => {
+  it('칸 이동 전용 오류 문구를 담지 않는다', () => {
+    expect(messageOf(CategorySchema.safeParse('x'))).not.toBe('옮길 칸이 올바르지 않습니다.');
   });
 });
 
