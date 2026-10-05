@@ -4,7 +4,7 @@ import { CLASSIFIER } from '../classifier/category';
 import type { Category, Classifier } from '../classifier/category';
 import { PrismaService } from '../prisma/prisma.service';
 import { MemoDto, toMemoDto } from './memo.dto';
-import { computeHitStats, HitStats } from './memo-stats';
+import { computeHitStats, type HitStats } from './memo-stats';
 
 @Injectable()
 export class MemosService {
