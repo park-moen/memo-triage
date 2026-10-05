@@ -83,6 +83,7 @@
    - 진행 중 판정한 것: `.dockerignore`에 계획에 없던 `web/*`(`!web/package.json` 유지)와 `**/.env.*`를 추가했다(spec 5절, 예전 `server/.dockerignore`의 `.env.*` 차단 유지). 루트에서 `pnpm install`하면 Prisma client가 생성되지 않아 README 테스트 순서에 `pnpm -F server exec prisma generate`를 넣었다.
    - 최종 리뷰(opus): Critical 0, Important 0, Minor 4. 반영: f5355a1(`CategorySchema`에서 칸 이동 전용 문구를 빼고 `MoveMemoBodySchema`로 옮김 — 응답 검사에 엉뚱한 문구가 나오지 않게), 7fa5cbd(`test:e2e:prepare` 앞에 `prisma generate`). web watch 반영(`pnpm dev:shared` + `pnpm dev:web`)은 새로고침 없이 반영됨을 확인했다. 2단계로 미룸: `HitStatsSchema` 키와 `memo-stats.ts` 출처 검사를 `CLASSIFIER_SOURCES`에서 만들기. 그 밖에 미룬 Minor: shared 개별 schema 테스트 보강, shared `tsconfig.json`의 `declaration`+`noEmit` 중복, `parseWith` fallback 문구에 도달하지 않음.
    - SDD ledger(`.superpowers/sdd/…`)는 완료 후 지웠다. 기록은 Git 이력과 이 문서에 있다.
+   - **병합과 정리 (2026-10-05):** PR #1이 `main`에 병합됐다(ab07f1f). `main` 폴더를 갱신하고 pnpm 기준으로 다시 준비했으며(`pnpm install` → `pnpm build:shared` → `prisma generate` → `docker compose up -d --build`, API 응답 확인), Orca worktree `shared-zod-schema`와 그 Docker volume, 로컬 branch를 정리했다.
 4. 실제 구현 과정에서 겪은 불편을 기록해 Superpowers·gstack·개인 하네스 중 무엇이 필요한지 나중에 판단한다.
 
 ## 보안·비용 경계
@@ -93,8 +94,9 @@
 
 ## 받는 작업 공간에 요청하는 첫 행동
 
-현재 단계는 **공유 zod schema 구현 완료, push·PR 승인 대기**다. 이 worktree(`~/orca/workspaces/jev-test/shared-zod-schema`, branch `refactor/shared-zod-schema`)에서:
+현재 단계는 **PR #1 병합 완료(ab07f1f), worktree 정리 완료, 다음은 2단계(Clef-flash 연결)** 다. `main` 폴더(`~/Desktop/mjpark/jev-test`)에서:
 
-1. 사용자가 push와 PR 생성을 승인했는지 확인한다. 승인 전에는 원격을 바꾸지 않는다. PR 본문은 `dev-workflow:merge-request` skill로 작성한다.
-2. PR 병합 뒤에는 `main` 폴더를 갱신하고 이 worktree를 정리한다. 그다음 2단계(Clef-flash 연결)는 새 계약(`scores`, 대체 사유)을 shared schema부터 정의하고 시작한다(설계 10절).
-3. Docker stack은 한 번에 한 폴더에서만 띄운다. 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
+1. 2단계는 공유 schema 설계 문서(`docs/superpowers/specs/2026-10-05-shared-schema-design.md`) 10절에 따라, 새 계약(`scores`, 대체 사유)을 **shared schema부터** 정의하고 시작한다. 1단계 설계 문서(`docs/superpowers/specs/2026-10-04-memo-classifier-design.md`)의 2단계 범위와 12절 확인 항목(REST 호출의 무료 할당량 적용 여부, 요청·응답 형식)을 먼저 확인한다.
+2. 작업 branch를 만들고 GitHub PR로 합친다. push와 PR 생성은 그 시점에 사용자 승인을 받는다. Workers AI API 토큰은 사용자가 직접 만들어 `server/.env`에 넣는다.
+3. 미뤄 둔 항목: `HitStatsSchema` 키와 `memo-stats.ts` 출처 검사를 `CLASSIFIER_SOURCES`에서 만들기(2단계에서 처리).
+4. Docker stack은 한 번에 한 폴더에서만 띄운다. 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
