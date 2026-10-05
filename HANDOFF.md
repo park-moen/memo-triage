@@ -96,6 +96,10 @@
    - 보완 설계 문서: `docs/superpowers/specs/2026-10-05-clef-flash-stage2-design.md`(사용자 검토 대기, commit 전 — worktree branch의 첫 commit에 넣는다).
    - 설계 문서 승인(2026-10-05). 구현 계획: `docs/superpowers/plans/2026-10-05-clef-flash-stage2.md`(Task 0~7, 사용자 검토 대기, commit 전). branch 이름 `feat/clef-flash-classifier`.
    - 다음: 계획 승인 → Orca worktree 생성 → 그 카드의 새 Claude 세션에서 subagent-driven 구현 → PR.
+   - **구현 완료 (2026-10-05, branch `feat/clef-flash-classifier`):** Task 0(256bd71 문서), 1(6120177 shared 계약), 2(7a2fcd4 `fallback_reason` 열·`clef_calls` 테이블), 3(84bdc49 `ClefClassifier`), 4(76145f5 `ResilientClassifier`), 5(77abfeb `CLASSIFIER` 연결·e2e), 6(2388e34 확률 막대·배지·입력 잠금), 7(061a688 compose `env_file`·README). Task마다 리뷰를 통과했다.
+   - 최종 리뷰(opus): Critical 0, Important 0, Minor 4 — 모두 반영했다. d037f1e(분류가 끝나면 입력창에 focus 복귀), 7b0d4c8(실패 응답 본문 정리), 54f1e25(README 첫 문단, `.env.example`에 `CLEF_DAILY_LIMIT`). 미룬 Minor 6건은 최종 리뷰에서 "계속 미뤄도 됨"으로 판정했다: `HitStatsSchema` 생성 cast, `schema.prisma` 열 정렬, 200 응답 본문이 중간에 끊기면 `network` 대신 `invalid_response`, 동시 요청 시 하루 상한을 조금 넘길 수 있음, not_configured e2e의 데이터 미정리, 확률 % 반올림 합이 100이 아닐 수 있음.
+   - 검증: shared 31개, server 단위 46개, e2e 17개(기존 11개 파일 무수정 + 새 6개), server·web build·lint. Docker를 처음부터 띄워 확인했다. 실제 Cloudflare 호출은 **합계 2번**(둘 다 `success`)이고, 확인하는 동안 server를 `CLEF_DAILY_LIMIT=5`로 띄워 앱이 5번을 넘기지 못하게 했다. 대체 경로는 `CLEF_DAILY_LIMIT=0`(오늘 호출 상한 도달)과 빈 토큰(API 키 없음)으로 확인했고, 1단계 형태 메모(`fallback_reason` null)는 `규칙` 배지로 보였다. 토큰·계정 ID 값은 branch 이력에 없다.
+   - 진행 중 판정: 커밋 훅이 `🗃️`를 `db` type에만 허용해 7a2fcd4 제목은 계획 원안 `🗃️ db:`를 유지했다. Task 7은 코드(compose·README)만 subagent가 하고, 실제 호출 확인과 이 문서 갱신은 최종 리뷰 뒤 controller가 했다.
 
 ## 보안·비용 경계
 
@@ -105,10 +109,9 @@
 
 ## 받는 작업 공간에 요청하는 첫 행동
 
-현재 단계는 **2단계(Clef-flash 연결) 구현, subagent-driven 진행**이다. 이 worktree(`~/orca/workspaces/jev-test/clef-flash-stage2`, branch `feat/clef-flash-classifier`, base `main` 8f6a466)에서:
+현재 단계는 **2단계(Clef-flash 연결) 구현 완료, push·PR 승인 대기**다. 이 worktree(`~/orca/workspaces/jev-test/clef-flash-stage2`, branch `feat/clef-flash-classifier`, base `main` 8f6a466)에서:
 
-1. 이 문서, 설계(`docs/superpowers/specs/2026-10-05-clef-flash-stage2-design.md`), 계획(`docs/superpowers/plans/2026-10-05-clef-flash-stage2.md`)을 읽는다.
-2. `superpowers:subagent-driven-development`로 계획의 **Task 1부터** 진행한다. Task 0(worktree 준비·문서 commit·`pnpm install`·shared build·Prisma client 생성·DB 기동)은 처음 세션이 끝냈다. ledger(`.superpowers/sdd/2026-10-05-clef-flash-stage2/progress.md`)가 있으면 `Task N: complete`가 없는 첫 Task부터 이어 간다.
-3. Task 사이에 멈추지 않는다. 최종 리뷰까지 마친 뒤 `superpowers:finishing-a-development-branch`에서 push와 PR 생성 승인을 요청하고, ledger의 `Ruling:` 줄을 모두 모아 보고한다. PR 본문은 `dev-workflow:merge-request` skill로 쓴다.
-4. agent가 돌리는 테스트는 실제 Cloudflare를 부르지 않는다. `server/.env`에 실제 토큰이 있지만 값을 출력·기록·commit하지 않는다. 실제 호출은 Task 7 최종 확인에서만, 합계 5번 이내.
-5. Docker stack은 이 worktree에서만 띄운다(`main` 폴더 stack은 내려가 있다). 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
+1. 사용자가 승인하면 `git push -u origin feat/clef-flash-classifier`로 올리고, `dev-workflow:merge-request` skill로 PR 본문을 써서 GitHub PR을 만든다. 승인 전에는 push하지 않는다.
+2. PR이 병합되면 `main` 폴더를 갱신하고 `pnpm install` → `pnpm build:shared` → `pnpm -F server exec prisma generate` → `docker compose up -d --build`로 다시 준비한다(새 migration은 컨테이너 시작 때 `prisma migrate deploy`가 적용). 그다음 이 worktree와 Docker volume(`clef-flash-stage2_db-data`), 로컬 branch를 정리한다.
+3. `server/.env`에 실제 토큰이 있다. 값을 출력·기록·commit하지 않는다. REST 호출이 대시보드의 Workers AI 사용량에 잡히는지는 사용자가 대시보드로 확인한다(2026-10-05 기준 실제 호출 2번).
+4. Docker는 지금 이 worktree의 db 컨테이너만 떠 있다(server 컨테이너는 내려 둠). 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
