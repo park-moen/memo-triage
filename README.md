@@ -6,26 +6,32 @@
 
 ## 실행
 
-필요한 것: Docker, Node.js
+필요한 것: Docker, Node.js, pnpm 12 (`packageManager`에 버전 고정)
 
 ```bash
-docker compose up -d          # Postgres(5433) + server(3000)
-cd web && npm install && npm run dev   # http://localhost:5173
+pnpm install
+pnpm build:shared            # @memo/shared를 먼저 build해야 server·web이 import할 수 있습니다
+docker compose up -d         # Postgres(5433) + server(3000)
+pnpm dev:web                 # http://localhost:5173
 ```
 
 ## 테스트
 
 ```bash
 docker compose up -d db
-cd server && npm install
-npm test                      # 단위 테스트
-npm run test:e2e:prepare      # 테스트 DB(memo_test)에 migration 적용
-npm run test:e2e              # API 테스트
+cp server/.env.example server/.env   # 처음 한 번
+pnpm build:shared
+pnpm -F server exec prisma generate   # Prisma client 생성 (pnpm install 뒤 한 번)
+pnpm test                    # shared schema + server 단위 테스트
+pnpm -F server test:e2e:prepare      # 테스트 DB(memo_test)에 migration 적용
+pnpm test:e2e                # API 테스트
 ```
 
-## schema를 바꿨을 때
+## 바꿨을 때 다시 띄우기
 
-```bash
-cd server && npx prisma migrate dev --name <변경-이름>
-docker compose up -d --build server
-```
+| 바꾼 것 | 할 일 |
+| --- | --- |
+| `server/src` | 자동 반영 |
+| `packages/shared` | web: `pnpm dev:shared`를 켜 두면 자동 반영 / server: `docker compose up -d --build server` |
+| `server/prisma/schema.prisma` | `pnpm -F server exec prisma migrate dev --name <변경-이름>` 후 `docker compose up -d --build server` |
+| `package.json`(의존성) | `pnpm install`과 `pnpm -F server exec prisma generate` 후 `docker compose up -d --build server` |

@@ -1,7 +1,6 @@
-import { ClassifierSource } from '../classifier/category';
+import type { HitStats } from '@memo/shared';
 
-export type HitCount = { hit: number; total: number };
-export type HitStats = Record<ClassifierSource, HitCount>;
+export type { HitCount, HitStats } from '@memo/shared';
 
 export function computeHitStats(
   memos: ReadonlyArray<{

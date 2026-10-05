@@ -1,15 +1,6 @@
-export const CATEGORIES = ['todo', 'idea', 'check', 'reference'] as const;
+import type { Category, ClassifierSource } from '@memo/shared';
 
-export type Category = (typeof CATEGORIES)[number];
-
-export function isCategory(value: unknown): value is Category {
-  return (
-    typeof value === 'string' &&
-    (CATEGORIES as readonly string[]).includes(value)
-  );
-}
-
-export type ClassifierSource = 'rule' | 'clef-flash';
+export type { Category, ClassifierSource } from '@memo/shared';
 
 export interface ClassifyResult {
   category: Category;

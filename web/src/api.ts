@@ -1,5 +1,7 @@
-export const CATEGORIES = ['todo', 'idea', 'check', 'reference'] as const;
-export type Category = (typeof CATEGORIES)[number];
+import type { Category, ClassifierSource, HitStats, Memo } from '@memo/shared';
+
+export { CATEGORIES } from '@memo/shared';
+export type { Category, ClassifierSource, HitCount, HitStats, Memo } from '@memo/shared';
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   todo: '할 일',
@@ -8,26 +10,10 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   reference: '참고',
 };
 
-export type ClassifierSource = 'rule' | 'clef-flash';
-
 export const SOURCE_LABELS: Record<ClassifierSource, string> = {
   rule: '규칙',
   'clef-flash': 'Clef-flash',
 };
-
-export interface Memo {
-  id: string;
-  content: string;
-  modelCategory: Category;
-  finalCategory: Category;
-  scores: Record<Category, number> | null;
-  note: string | null;
-  source: ClassifierSource;
-  createdAt: string;
-}
-
-export type HitCount = { hit: number; total: number };
-export type HitStats = Record<ClassifierSource, HitCount>;
 
 const SERVER_DOWN_MESSAGE =
   '서버에 연결할 수 없습니다. server가 실행 중인지 확인해 주세요.';

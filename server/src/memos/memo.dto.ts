@@ -1,19 +1,11 @@
-import type { Memo } from '@prisma/client';
-import { Category, ClassifierSource } from '../classifier/category';
+import type { Category, ClassifierSource, Memo } from '@memo/shared';
+import type { Memo as PrismaMemo } from '@prisma/client';
 
-export interface MemoDto {
-  id: string;
-  content: string;
-  modelCategory: Category;
-  finalCategory: Category;
-  scores: Record<Category, number> | null;
-  note: string | null;
-  source: ClassifierSource;
-  createdAt: string;
-}
+/** 응답 모양은 @memo/shared의 MemoSchema가 정한다. */
+export type MemoDto = Memo;
 
-/** DB에는 server만 쓰고, 쓸 때 parseCategory와 분류기 결과로 값을 검사하므로 여기서는 형만 맞춘다. */
-export function toMemoDto(memo: Memo): MemoDto {
+/** DB에는 server만 쓰고, 쓸 때 shared schema와 분류기 결과로 값을 검사하므로 여기서는 형만 맞춘다. */
+export function toMemoDto(memo: PrismaMemo): MemoDto {
   return {
     id: memo.id,
     content: memo.content,

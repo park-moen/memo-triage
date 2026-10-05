@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { parseCategory, parseContent } from './memo-input';
+import { CreateMemoBodySchema, MoveMemoBodySchema } from '@memo/shared';
+import { parseWith } from '../common/parse-with';
 import { MemosService } from './memos.service';
 
 @Controller('memos')
@@ -12,15 +13,14 @@ export class MemosController {
   }
 
   @Post()
-  create(@Body() body: { content?: unknown } | undefined) {
-    return this.memos.create(parseContent(body?.content));
+  create(@Body() body: unknown) {
+    const { content } = parseWith(CreateMemoBodySchema, body);
+    return this.memos.create(content);
   }
 
   @Patch(':id')
-  move(
-    @Param('id') id: string,
-    @Body() body: { category?: unknown } | undefined,
-  ) {
-    return this.memos.move(id, parseCategory(body?.category));
+  move(@Param('id') id: string, @Body() body: unknown) {
+    const { category } = parseWith(MoveMemoBodySchema, body);
+    return this.memos.move(id, category);
   }
 }

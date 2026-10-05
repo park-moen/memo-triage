@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
-
-const MAX_LENGTH = 200;
+import { MAX_CONTENT_LENGTH } from '@memo/shared';
 
 interface Props {
   /** 저장에 성공하면 true. true일 때만 입력창을 비운다. */
@@ -12,7 +11,7 @@ export function MemoInput({ onSubmit, disabled }: Props) {
   const [value, setValue] = useState('');
   const content = value.trim();
   const length = [...content].length;
-  const tooLong = length > MAX_LENGTH;
+  const tooLong = length > MAX_CONTENT_LENGTH;
   const canSubmit = !disabled && length > 0 && !tooLong;
 
   async function handleSubmit(event: FormEvent) {
@@ -30,7 +29,7 @@ export function MemoInput({ onSubmit, disabled }: Props) {
         aria-label="메모"
       />
       <span className={tooLong ? 'counter over' : 'counter'}>
-        {length}/{MAX_LENGTH}
+        {length}/{MAX_CONTENT_LENGTH}
       </span>
       <button type="submit" disabled={!canSubmit}>
         {disabled ? '분류 중…' : '분류'}

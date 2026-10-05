@@ -17,7 +17,9 @@ services:
       retries: 15
 
   server:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     environment:
       DATABASE_URL: postgresql://memo:memo@db:5432/memo
     ports:
@@ -26,9 +28,9 @@ services:
       db:
         condition: service_healthy
     volumes:
-      # 코드 수정이 컨테이너에 바로 반영되게 한다. schema.prisma를 바꾸면 --build로 다시 띄운다.
-      - ./server/src:/app/src
-      - ./server/prisma:/app/prisma
+      # server 코드 수정은 바로 반영된다. shared·schema.prisma·의존성을 바꾸면 --build로 다시 띄운다.
+      - ./server/src:/app/server/src
+      - ./server/prisma:/app/server/prisma
 
 volumes:
   db-data:
