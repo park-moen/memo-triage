@@ -5,6 +5,8 @@
   "scripts": {
     "dev:web": "pnpm -F web dev",
     "test": "pnpm -r --if-present test",
-    "test:e2e": "pnpm -F server test:e2e"
+    "test:e2e": "pnpm -F server test:e2e",
+    "build:shared": "pnpm -F @memo/shared build",
+    "dev:shared": "pnpm -F @memo/shared dev"
   }
 }
