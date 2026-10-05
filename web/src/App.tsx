@@ -63,7 +63,7 @@ export default function App() {
       {pendingContent && (
         <div className="card pending" aria-live="polite">
           <p className="content">{pendingContent}</p>
-          <p className="note">분류 중…</p>
+          <p className="note">분류 중… (최대 15초)</p>
         </div>
       )}
       <Board memos={memos} onMove={handleMove} />

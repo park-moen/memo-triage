@@ -27,6 +27,7 @@ export function MemoInput({ onSubmit, disabled }: Props) {
         onChange={(event) => setValue(event.target.value)}
         placeholder="떠오른 생각을 한 줄로 적어 보세요"
         aria-label="메모"
+        disabled={disabled}
       />
       <span className={tooLong ? 'counter over' : 'counter'}>
         {length}/{MAX_CONTENT_LENGTH}

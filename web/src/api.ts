@@ -1,7 +1,7 @@
-import type { Category, ClassifierSource, HitStats, Memo } from '@memo/shared';
+import type { Category, ClassifierSource, FallbackReason, HitStats, Memo } from '@memo/shared';
 
 export { CATEGORIES } from '@memo/shared';
-export type { Category, ClassifierSource, HitCount, HitStats, Memo } from '@memo/shared';
+export type { Category, ClassifierSource, FallbackReason, HitCount, HitStats, Memo } from '@memo/shared';
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   todo: '할 일',
@@ -13,6 +13,16 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 export const SOURCE_LABELS: Record<ClassifierSource, string> = {
   rule: '규칙',
   'clef-flash': 'Clef-flash',
+};
+
+export const FALLBACK_LABELS: Record<FallbackReason, string> = {
+  timeout: '응답 시간 초과',
+  network: '네트워크 오류',
+  invalid_response: '응답 형식 오류',
+  auth: 'API 인증 실패',
+  rate_limited: 'Cloudflare 호출 제한',
+  daily_limit: '오늘 호출 상한 도달',
+  not_configured: 'API 키 없음',
 };
 
 const SERVER_DOWN_MESSAGE =
