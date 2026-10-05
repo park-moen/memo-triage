@@ -77,9 +77,12 @@
    - **설계 2/3 승인 (2026-10-05):** server는 `parseContent`·`parseCategory` 대신 controller에서 `parseWith(schema, body)`로 검사하고 첫 한국어 문구로 400. 타입은 shared에서 가져오고 `ClassifyResult`·`Classifier`·`toMemoDto`만 server에 남김. 입력 규칙 단위 테스트는 shared로 옮기고 server e2e 11개는 그대로 둔다. web은 `api.ts` 타입 선언 삭제, `CATEGORIES`·`MAX_CONTENT_LENGTH`도 shared 값 사용(번들에 zod 포함 허용), 화면 문구는 web 유지. Docker build context를 루트로, corepack pnpm, 루트 `.dockerignore`. shared 변경 시 web은 `pnpm -F @memo/shared dev`, server 컨테이너는 `--build`. README·HANDOFF의 명령을 pnpm 기준으로 고친다.
    - **설계 3/3 승인 (2026-10-05):** 검증(shared 단위·build 산출물, server 단위·e2e 11개 무수정 통과·build·lint, web build·lint, pnpm frozen install·Prisma client 생성, Docker 처음부터 build, 화면)과 완료 기준(칸 목록·응답 타입이 shared에만 존재, 최종 리뷰 반영, push·PR은 그때 승인). 설계 문서: `docs/superpowers/specs/2026-10-05-shared-schema-design.md` — **2026-10-05 사용자 승인**(commit 전, worktree branch 첫 commit에 포함 예정). 다음: `writing-plans`로 구현 계획.
    - **monorepo 목표와 후속 작업 (2026-10-05, 사용자):** 최종 목표는 DTO와 요청·응답 정의를 모두 web·server 공통으로 두어 중복을 없애는 것. 이번 PR은 현재 API 3종의 요청·응답 schema와 DTO를 shared로 옮기는 첫 단계다. 후속: web의 실행 중 응답 검사, 2단계의 새 계약(`scores` 등)은 shared부터 정의. 설계 문서 10절에 기록.
-   - **구현 계획 작성 (2026-10-05):** `docs/superpowers/plans/2026-10-05-shared-schema.md`(Task 0~6, 사용자 검토 대기). 계획 전 scratchpad 실험으로 확인: pnpm 12는 막힌 설치 script를 `ERR_PNPM_IGNORED_BUILDS` 오류로 멈추고 `pnpm approve-builds`가 `pnpm-workspace.yaml`의 `allowBuilds`에 기록한다. tsup build 결과는 CJS `require`·ESM `import`·`nodenext` 타입 검사에서 모두 동작한다. zod 4의 `{ error }` 문구 지정이 의도대로 나온다. `node:24-bookworm-slim`의 corepack으로 pnpm 12.4.1을 받을 수 있다. branch 이름은 `refactor/shared-zod-schema`.
+   - **구현 계획 작성 (2026-10-05):** `docs/superpowers/plans/2026-10-05-shared-schema.md`(Task 0~6, 2026-10-05 승인). 계획 전 scratchpad 실험으로 확인: pnpm 12는 막힌 설치 script를 `ERR_PNPM_IGNORED_BUILDS` 오류로 멈추고 `pnpm approve-builds`가 `pnpm-workspace.yaml`의 `allowBuilds`에 기록한다. tsup build 결과는 CJS `require`·ESM `import`·`nodenext` 타입 검사에서 모두 동작한다. zod 4의 `{ error }` 문구 지정이 의도대로 나온다. `node:24-bookworm-slim`의 corepack으로 pnpm 12.4.1을 받을 수 있다. branch 이름은 `refactor/shared-zod-schema`.
 3-5. **공유 schema 구현 진행 (2026-10-05):** 계획 승인. 실행 위치를 Orca worktree `~/orca/workspaces/jev-test/shared-zod-schema`(branch `refactor/shared-zod-schema`, base `main` 0fae484)로 옮겼다. 처음 만든 harness worktree(`.claude/worktrees/…`)는 이 저장소의 Orca 설정이 외부 worktree를 숨겨(`externalWorktreeVisibility: hide`) 화면에 보이지 않아, 사용자 승인 아래 지우고 옮겼다. 실행 방식은 `superpowers:subagent-driven-development`이고 Task 사이에 멈추지 않는다(사용자가 Task별 체크포인트를 철회). 처음 세션은 `main` 폴더 터미널에서 시작돼 Orca의 `main` 카드에 표시되므로, 사용자 요청으로 남은 작업을 worktree 카드 터미널의 새 Claude 세션에 넘긴다.
-   - 진행: Task 0(ca56f1e 문서), Task 1(a4bedbb pnpm 전환, 리뷰 통과) 완료. 진행 ledger(Git 제외): `.superpowers/sdd/2026-10-05-shared-schema/progress.md` — Task 완료 줄, `Ruling:` 줄, 브리프·리포트·리뷰 파일이 모두 여기 있다.
+   - **구현 완료 (2026-10-05):** Task 0(ca56f1e 문서), 1(a4bedbb pnpm 전환), 2(6236fa4 `@memo/shared`), 3(6f5807a server 전환), 4(7477b5f web 전환), 5(98631b7·d77023b Docker), 6(c03dd2b README). Task마다 리뷰를 통과했다. 검증: shared 27개, server 단위 12개, e2e 11개(파일 무수정), server·web build, Docker 처음부터 build, 화면 확인.
+   - 진행 중 판정한 것: `.dockerignore`에 계획에 없던 `web/*`(`!web/package.json` 유지)와 `**/.env.*`를 추가했다(spec 5절, 예전 `server/.dockerignore`의 `.env.*` 차단 유지). 루트에서 `pnpm install`하면 Prisma client가 생성되지 않아 README 테스트 순서에 `pnpm -F server exec prisma generate`를 넣었다.
+   - 최종 리뷰(opus): Critical 0, Important 0, Minor 4. 반영: f5355a1(`CategorySchema`에서 칸 이동 전용 문구를 빼고 `MoveMemoBodySchema`로 옮김 — 응답 검사에 엉뚱한 문구가 나오지 않게), 7fa5cbd(`test:e2e:prepare` 앞에 `prisma generate`). web watch 반영(`pnpm dev:shared` + `pnpm dev:web`)은 새로고침 없이 반영됨을 확인했다. 2단계로 미룸: `HitStatsSchema` 키와 `memo-stats.ts` 출처 검사를 `CLASSIFIER_SOURCES`에서 만들기. 그 밖에 미룬 Minor: shared 개별 schema 테스트 보강, shared `tsconfig.json`의 `declaration`+`noEmit` 중복, `parseWith` fallback 문구에 도달하지 않음.
+   - SDD ledger(`.superpowers/sdd/…`)는 완료 후 지웠다. 기록은 Git 이력과 이 문서에 있다.
 4. 실제 구현 과정에서 겪은 불편을 기록해 Superpowers·gstack·개인 하네스 중 무엇이 필요한지 나중에 판단한다.
 
 ## 보안·비용 경계
@@ -90,9 +93,8 @@
 
 ## 받는 작업 공간에 요청하는 첫 행동
 
-현재 단계는 **공유 zod schema 구현(subagent-driven) 진행 중**이다. 이 worktree(`~/orca/workspaces/jev-test/shared-zod-schema`)에서:
+현재 단계는 **공유 zod schema 구현 완료, push·PR 승인 대기**다. 이 worktree(`~/orca/workspaces/jev-test/shared-zod-schema`, branch `refactor/shared-zod-schema`)에서:
 
-1. 이 문서, 설계(`docs/superpowers/specs/2026-10-05-shared-schema-design.md`), 계획(`docs/superpowers/plans/2026-10-05-shared-schema.md`), ledger(`.superpowers/sdd/2026-10-05-shared-schema/progress.md`)를 읽는다.
-2. `superpowers:subagent-driven-development`를 불러, ledger에 `Task N: complete`가 없는 첫 Task부터 이어서 진행한다. 완료된 Task를 다시 돌리지 않는다.
-3. Task 사이에 멈추지 않는다. 최종 리뷰까지 마친 뒤 `superpowers:finishing-a-development-branch`에서 push와 PR 생성 승인을 요청하고, ledger의 `Ruling:` 줄을 모두 모아 보고한다.
-4. 원래 `main` 폴더(`~/Desktop/mjpark/jev-test`)의 Docker stack은 내려가 있다. Docker는 이 worktree에서만 띄운다. 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
+1. 사용자가 push와 PR 생성을 승인했는지 확인한다. 승인 전에는 원격을 바꾸지 않는다. PR 본문은 `dev-workflow:merge-request` skill로 작성한다.
+2. PR 병합 뒤에는 `main` 폴더를 갱신하고 이 worktree를 정리한다. 그다음 2단계(Clef-flash 연결)는 새 계약(`scores`, 대체 사유)을 shared schema부터 정의하고 시작한다(설계 10절).
+3. Docker stack은 한 번에 한 폴더에서만 띄운다. 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
