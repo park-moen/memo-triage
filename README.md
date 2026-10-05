@@ -1,6 +1,6 @@
 # 메모 분류함
 
-업무 중 떠오른 메모를 `할 일·아이디어·확인할 것·참고` 4칸 중 하나로 분류하는 사이드 프로젝트입니다. 2단계에서 Cloudflare Workers AI의 Clef-flash가 분류를 맡습니다. 지금(1단계)은 키워드 규칙 분류기로 동작합니다.
+업무 중 떠오른 메모를 `할 일·아이디어·확인할 것·참고` 4칸 중 하나로 분류하는 사이드 프로젝트입니다. Cloudflare Workers AI의 Clef-flash로 분류하고, 실패하거나 키가 없으면 키워드 규칙 분류기로 대체합니다.
 
 설계: `docs/superpowers/specs/2026-10-04-memo-classifier-design.md`
 
