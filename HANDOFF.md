@@ -78,6 +78,8 @@
    - **설계 3/3 승인 (2026-10-05):** 검증(shared 단위·build 산출물, server 단위·e2e 11개 무수정 통과·build·lint, web build·lint, pnpm frozen install·Prisma client 생성, Docker 처음부터 build, 화면)과 완료 기준(칸 목록·응답 타입이 shared에만 존재, 최종 리뷰 반영, push·PR은 그때 승인). 설계 문서: `docs/superpowers/specs/2026-10-05-shared-schema-design.md` — **2026-10-05 사용자 승인**(commit 전, worktree branch 첫 commit에 포함 예정). 다음: `writing-plans`로 구현 계획.
    - **monorepo 목표와 후속 작업 (2026-10-05, 사용자):** 최종 목표는 DTO와 요청·응답 정의를 모두 web·server 공통으로 두어 중복을 없애는 것. 이번 PR은 현재 API 3종의 요청·응답 schema와 DTO를 shared로 옮기는 첫 단계다. 후속: web의 실행 중 응답 검사, 2단계의 새 계약(`scores` 등)은 shared부터 정의. 설계 문서 10절에 기록.
    - **구현 계획 작성 (2026-10-05):** `docs/superpowers/plans/2026-10-05-shared-schema.md`(Task 0~6, 사용자 검토 대기). 계획 전 scratchpad 실험으로 확인: pnpm 12는 막힌 설치 script를 `ERR_PNPM_IGNORED_BUILDS` 오류로 멈추고 `pnpm approve-builds`가 `pnpm-workspace.yaml`의 `allowBuilds`에 기록한다. tsup build 결과는 CJS `require`·ESM `import`·`nodenext` 타입 검사에서 모두 동작한다. zod 4의 `{ error }` 문구 지정이 의도대로 나온다. `node:24-bookworm-slim`의 corepack으로 pnpm 12.4.1을 받을 수 있다. branch 이름은 `refactor/shared-zod-schema`.
+3-5. **공유 schema 구현 진행 (2026-10-05):** 계획 승인. 실행 위치를 Orca worktree `~/orca/workspaces/jev-test/shared-zod-schema`(branch `refactor/shared-zod-schema`, base `main` 0fae484)로 옮겼다. 처음 만든 harness worktree(`.claude/worktrees/…`)는 이 저장소의 Orca 설정이 외부 worktree를 숨겨(`externalWorktreeVisibility: hide`) 화면에 보이지 않아, 사용자 승인 아래 지우고 옮겼다. 실행 방식은 `superpowers:subagent-driven-development`이고 Task 사이에 멈추지 않는다(사용자가 Task별 체크포인트를 철회). 처음 세션은 `main` 폴더 터미널에서 시작돼 Orca의 `main` 카드에 표시되므로, 사용자 요청으로 남은 작업을 worktree 카드 터미널의 새 Claude 세션에 넘긴다.
+   - 진행: Task 0(ca56f1e 문서), Task 1(a4bedbb pnpm 전환, 리뷰 통과) 완료. 진행 ledger(Git 제외): `.superpowers/sdd/2026-10-05-shared-schema/progress.md` — Task 완료 줄, `Ruling:` 줄, 브리프·리포트·리뷰 파일이 모두 여기 있다.
 4. 실제 구현 과정에서 겪은 불편을 기록해 Superpowers·gstack·개인 하네스 중 무엇이 필요한지 나중에 판단한다.
 
 ## 보안·비용 경계
@@ -88,4 +90,9 @@
 
 ## 받는 작업 공간에 요청하는 첫 행동
 
-이 문서를 읽고 현재 단계가 **주제 선정과 가벼운 기획**임을 사용자에게 짧게 알린다. 턴제 게임으로 바로 확정하거나 구현을 시작하지 말고, 사용자가 즐겁게 시험할 만한 후보를 함께 비교한다. 이 폴더의 Git 상태를 확인하고, 이후 결과물은 이 폴더에 남긴다.
+현재 단계는 **공유 zod schema 구현(subagent-driven) 진행 중**이다. 이 worktree(`~/orca/workspaces/jev-test/shared-zod-schema`)에서:
+
+1. 이 문서, 설계(`docs/superpowers/specs/2026-10-05-shared-schema-design.md`), 계획(`docs/superpowers/plans/2026-10-05-shared-schema.md`), ledger(`.superpowers/sdd/2026-10-05-shared-schema/progress.md`)를 읽는다.
+2. `superpowers:subagent-driven-development`를 불러, ledger에 `Task N: complete`가 없는 첫 Task부터 이어서 진행한다. 완료된 Task를 다시 돌리지 않는다.
+3. Task 사이에 멈추지 않는다. 최종 리뷰까지 마친 뒤 `superpowers:finishing-a-development-branch`에서 push와 PR 생성 승인을 요청하고, ledger의 `Ruling:` 줄을 모두 모아 보고한다.
+4. 원래 `main` 폴더(`~/Desktop/mjpark/jev-test`)의 Docker stack은 내려가 있다. Docker는 이 worktree에서만 띄운다. 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
