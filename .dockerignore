@@ -1,6 +1,9 @@
 **/node_modules
 **/dist
 **/.env
+**/.env.*
 .git
 .claude
 .superpowers
+web/*
+!web/package.json
