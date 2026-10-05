@@ -96,7 +96,10 @@ export class ClefClassifier {
       } catch {
         return failure(controller.signal.aborted ? 'timeout' : 'network');
       }
-      if (!res.ok) return failureForStatus(res.status);
+      if (!res.ok) {
+        await res.body?.cancel().catch(() => undefined);
+        return failureForStatus(res.status);
+      }
 
       let body: unknown;
       try {
