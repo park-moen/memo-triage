@@ -284,6 +284,9 @@ importers:
 
   web:
     dependencies:
+      '@memo/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       react:
         specifier: ^19.2.8
         version: 19.3.0
