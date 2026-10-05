@@ -86,6 +86,17 @@
    - **병합과 정리 (2026-10-05):** PR #1이 `main`에 병합됐다(ab07f1f). `main` 폴더를 갱신하고 pnpm 기준으로 다시 준비했으며(`pnpm install` → `pnpm build:shared` → `prisma generate` → `docker compose up -d --build`, API 응답 확인), Orca worktree `shared-zod-schema`와 그 Docker volume, 로컬 branch를 정리했다.
 4. 실제 구현 과정에서 겪은 불편을 기록해 Superpowers·gstack·개인 하네스 중 무엇이 필요한지 나중에 판단한다.
 
+3-6. **2단계(Clef-flash 연결) 설계 진행 (2026-10-05, brainstorming architectural 경로):** 1단계 설계 문서 8절의 2단계 범위를 바탕으로, 바뀌거나 비어 있는 부분만 보완 설계로 쓴다.
+   - API 토큰: 사용자가 직접 만들어 `server/.env`의 `CLOUDFLARE_ACCOUNT_ID`·`CLOUDFLARE_API_TOKEN`에 넣었다(`.env.example`에는 빈 값). 사용자는 "개인 MVP라 쓰지 않는 사용량이 생기면 토큰을 폐기한다"는 조건으로 `.env` 보관을 택했다.
+   - 실제 호출 1회로 응답 모양 확인: `{ result: { model, answers: { <질문ID>: { type: "choice", choice, probabilities: { todo, idea, check, reference }, confidence } }, usage: { input_tokens, output_tokens } }, success, errors, messages }`. "배포 일정 PM한테 확인" → `check` 0.7676, 입력 194 token.
+   - 결정: 대체 사유는 새 필드 `fallbackReason`(없으면 null)으로 담는다(1단계 규칙 메모와 2단계 대체 메모 구분). 하루 호출 수는 호출 기록 테이블 `clef_calls`(시각, 결과)로 세고 UTC 날짜 기준(Cloudflare 무료 할당량 초기화 시각과 맞춤). 분류 중에는 입력창도 잠근다(1단계 리뷰 Minor 반영). server 구조는 조합: `ClefClassifier`(호출 1번·응답 해석) + `ResilientClassifier`(상한 확인·호출 기록·재시도·규칙 대체)를 `CLASSIFIER`에 꽂는다.
+   - **설계 1/3 승인 — 계약과 데이터:** shared에 `FALLBACK_REASONS`(`timeout`·`network`·`invalid_response`·`auth`·`rate_limited`·`daily_limit`·`not_configured`)와 `FallbackReasonSchema`, `MemoSchema.fallbackReason`(nullable), `HitStatsSchema` 키를 `CLASSIFIER_SOURCES`에서 생성. Clef-flash 응답 schema는 server 안에 둔다. DB: `memos.fallback_reason`(nullable) 추가, 새 테이블 `clef_calls(id, created_at, outcome)` — 실제 요청을 보냈을 때만 기록. 대체 시 `note`는 규칙 근거, `fallbackReason`은 대체 이유.
+   - **설계 2/3 승인 — server 흐름:** `ClefClassifier`는 실제 호출한 요청 모양으로 1번 호출, 5초 `AbortController`, server 내부 zod로 응답 검사. HTTP 분류: 200·모양 맞음=성공(칸=`choice`, `scores`=`probabilities`), 200이지만 `success:false`·모양 다름=`invalid_response`(재시도), 401·403=`auth`(재시도 안 함), 429=`rate_limited`(재시도 안 함), 5xx·연결 실패=`network`(재시도), 그 밖 4xx=`invalid_response`(재시도). `ResilientClassifier`: 토큰 없음→`not_configured`, 오늘 UTC 호출≥`CLEF_DAILY_LIMIT`(기본 100)→`daily_limit`, 최대 3번 시도·매번 `clef_calls` 기록·중간 상한 도달 시 중단, 실패 시 `RuleClassifier` + `fallbackReason`(마지막 실패). 성공 시 `note`는 null. 5초·3번은 코드 상수. Docker server에 `env_file: server/.env`. `MemosService`·controller·API는 바뀌지 않음.
+   - **설계 3/3 승인 — web·테스트·완료 기준:** 확률 막대, 배지 3종(`Clef-flash`/`대체 규칙`+이유/`규칙`), `FALLBACK_LABELS`는 web, 분류 중 입력창·버튼 잠금. agent가 돌리는 테스트는 실제 Cloudflare를 부르지 않는다(e2e 설정에서 `CLOUDFLARE_*`를 비움, Clef 경로는 가짜 `fetch`·가짜 Clef로). 실제 호출은 마지막 확인에서 5번 이내.
+   - 보완 설계 문서: `docs/superpowers/specs/2026-10-05-clef-flash-stage2-design.md`(사용자 검토 대기, commit 전 — worktree branch의 첫 commit에 넣는다).
+   - 설계 문서 승인(2026-10-05). 구현 계획: `docs/superpowers/plans/2026-10-05-clef-flash-stage2.md`(Task 0~7, 사용자 검토 대기, commit 전). branch 이름 `feat/clef-flash-classifier`.
+   - 다음: 계획 승인 → Orca worktree 생성 → 그 카드의 새 Claude 세션에서 subagent-driven 구현 → PR.
+
 ## 보안·비용 경계
 
 - 이전 Clef-flash API 토큰과 임시 실행기는 삭제됐다. 토큰 값을 문서·Git·handoff에 기록하지 않는다.
@@ -94,9 +105,10 @@
 
 ## 받는 작업 공간에 요청하는 첫 행동
 
-현재 단계는 **PR #1 병합 완료(ab07f1f), worktree 정리 완료, 다음은 2단계(Clef-flash 연결)** 다. `main` 폴더(`~/Desktop/mjpark/jev-test`)에서:
+현재 단계는 **2단계(Clef-flash 연결) 구현, subagent-driven 진행**이다. 이 worktree(`~/orca/workspaces/jev-test/clef-flash-stage2`, branch `feat/clef-flash-classifier`, base `main` 8f6a466)에서:
 
-1. 2단계는 공유 schema 설계 문서(`docs/superpowers/specs/2026-10-05-shared-schema-design.md`) 10절에 따라, 새 계약(`scores`, 대체 사유)을 **shared schema부터** 정의하고 시작한다. 1단계 설계 문서(`docs/superpowers/specs/2026-10-04-memo-classifier-design.md`)의 2단계 범위와 12절 확인 항목(REST 호출의 무료 할당량 적용 여부, 요청·응답 형식)을 먼저 확인한다.
-2. 작업 branch를 만들고 GitHub PR로 합친다. push와 PR 생성은 그 시점에 사용자 승인을 받는다. Workers AI API 토큰은 사용자가 직접 만들어 `server/.env`에 넣는다.
-3. 미뤄 둔 항목: `HitStatsSchema` 키와 `memo-stats.ts` 출처 검사를 `CLASSIFIER_SOURCES`에서 만들기(2단계에서 처리).
-4. Docker stack은 한 번에 한 폴더에서만 띄운다. 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
+1. 이 문서, 설계(`docs/superpowers/specs/2026-10-05-clef-flash-stage2-design.md`), 계획(`docs/superpowers/plans/2026-10-05-clef-flash-stage2.md`)을 읽는다.
+2. `superpowers:subagent-driven-development`로 계획의 **Task 1부터** 진행한다. Task 0(worktree 준비·문서 commit·`pnpm install`·shared build·Prisma client 생성·DB 기동)은 처음 세션이 끝냈다. ledger(`.superpowers/sdd/2026-10-05-clef-flash-stage2/progress.md`)가 있으면 `Task N: complete`가 없는 첫 Task부터 이어 간다.
+3. Task 사이에 멈추지 않는다. 최종 리뷰까지 마친 뒤 `superpowers:finishing-a-development-branch`에서 push와 PR 생성 승인을 요청하고, ledger의 `Ruling:` 줄을 모두 모아 보고한다. PR 본문은 `dev-workflow:merge-request` skill로 쓴다.
+4. agent가 돌리는 테스트는 실제 Cloudflare를 부르지 않는다. `server/.env`에 실제 토큰이 있지만 값을 출력·기록·commit하지 않는다. 실제 호출은 Task 7 최종 확인에서만, 합계 5번 이내.
+5. Docker stack은 이 worktree에서만 띄운다(`main` 폴더 stack은 내려가 있다). 무관한 `ieve-mariadb` 컨테이너는 건드리지 않는다.
