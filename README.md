@@ -27,6 +27,19 @@ pnpm -F server test:e2e:prepare      # 테스트 DB(memo_test)에 migration 적�
 pnpm test:e2e                # API 테스트
 ```
 
+## Clef-flash 연결
+
+`server/.env`에 Cloudflare 값을 넣으면 Clef-flash로 분류합니다. 비워 두면 규칙 분류기로 동작합니다(배지 `대체 규칙`, 이유 "API 키 없음").
+
+```dotenv
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=     # 권한: Workers AI Read·Edit만
+CLEF_DAILY_LIMIT=100      # 선택. 하루(UTC) 최대 호출 수
+```
+
+- `docker compose up`이 이 파일을 server 컨테이너에 넘깁니다. 값을 바꾸면 `docker compose up -d server`로 다시 띄웁니다.
+- 테스트(`pnpm test`, `pnpm test:e2e`)는 Cloudflare를 부르지 않습니다.
+
 ## 바꿨을 때 다시 띄우기
 
 | 바꾼 것 | 할 일 |
