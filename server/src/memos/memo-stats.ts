@@ -1,4 +1,8 @@
-import type { HitStats } from '@memo/shared';
+import {
+  CLASSIFIER_SOURCES,
+  isClassifierSource,
+  type HitStats,
+} from '@memo/shared';
 
 export type { HitCount, HitStats } from '@memo/shared';
 
@@ -9,12 +13,11 @@ export function computeHitStats(
     finalCategory: string;
   }>,
 ): HitStats {
-  const stats: HitStats = {
-    'clef-flash': { hit: 0, total: 0 },
-    rule: { hit: 0, total: 0 },
-  };
+  const stats = Object.fromEntries(
+    CLASSIFIER_SOURCES.map((source) => [source, { hit: 0, total: 0 }]),
+  ) as HitStats;
   for (const memo of memos) {
-    if (memo.source !== 'rule' && memo.source !== 'clef-flash') continue;
+    if (!isClassifierSource(memo.source)) continue;
     const count = stats[memo.source];
     count.total += 1;
     if (memo.modelCategory === memo.finalCategory) count.hit += 1;

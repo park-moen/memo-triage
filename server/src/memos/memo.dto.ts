@@ -1,4 +1,9 @@
-import type { Category, ClassifierSource, Memo } from '@memo/shared';
+import type {
+  Category,
+  ClassifierSource,
+  FallbackReason,
+  Memo,
+} from '@memo/shared';
 import type { Memo as PrismaMemo } from '@prisma/client';
 
 /** 응답 모양은 @memo/shared의 MemoSchema가 정한다. */
@@ -14,6 +19,7 @@ export function toMemoDto(memo: PrismaMemo): MemoDto {
     scores: memo.scores as unknown as Record<Category, number> | null,
     note: memo.note,
     source: memo.source as ClassifierSource,
+    fallbackReason: memo.fallbackReason as FallbackReason | null,
     createdAt: memo.createdAt.toISOString(),
   };
 }
