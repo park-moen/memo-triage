@@ -13,6 +13,7 @@ describe('classifyByRules', () => {
       source: 'rule',
       scores: null,
       note,
+      fallbackReason: null,
     });
   });
 

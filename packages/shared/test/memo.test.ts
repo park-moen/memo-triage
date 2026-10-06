@@ -3,10 +3,13 @@ import {
   CATEGORIES,
   CategorySchema,
   CreateMemoBodySchema,
+  FALLBACK_REASONS,
+  FallbackReasonSchema,
   HitStatsSchema,
   MAX_CONTENT_LENGTH,
   MemoSchema,
   MoveMemoBodySchema,
+  isClassifierSource,
 } from '../src';
 
 type SafeParse = { success: true } | { success: false; error: { issues: { message: string }[] } };
@@ -79,6 +82,7 @@ describe('응답 schema', () => {
     scores: null,
     note: "키워드 '작성' 일치",
     source: 'rule',
+    fallbackReason: null,
     createdAt: '2026-10-05T00:00:00.000Z',
   };
 
@@ -93,5 +97,51 @@ describe('응답 schema', () => {
       HitStatsSchema.parse({ rule: { hit: 1, total: 2 }, 'clef-flash': { hit: 0, total: 0 } }),
     ).toEqual({ rule: { hit: 1, total: 2 }, 'clef-flash': { hit: 0, total: 0 } });
     expect(HitStatsSchema.safeParse({ rule: { hit: 1, total: 2 } }).success).toBe(false);
+  });
+});
+
+describe('대체 사유', () => {
+  it('7개 코드를 정해진 순서로 가진다', () => {
+    expect(FALLBACK_REASONS).toEqual([
+      'timeout',
+      'network',
+      'invalid_response',
+      'auth',
+      'rate_limited',
+      'daily_limit',
+      'not_configured',
+    ]);
+  });
+
+  it('정해진 코드만 받는다', () => {
+    expect(FallbackReasonSchema.safeParse('timeout').success).toBe(true);
+    expect(FallbackReasonSchema.safeParse('unknown').success).toBe(false);
+  });
+
+  it('메모는 fallbackReason으로 대체 이유를 담고, 없으면 null이다', () => {
+    const fallback = {
+      id: 'b2',
+      content: '회의록 작성',
+      modelCategory: 'todo',
+      finalCategory: 'todo',
+      scores: null,
+      note: "키워드 '작성' 일치",
+      source: 'rule',
+      fallbackReason: 'timeout',
+      createdAt: '2026-10-05T00:00:00.000Z',
+    };
+    expect(MemoSchema.parse(fallback).fallbackReason).toBe('timeout');
+    expect(MemoSchema.safeParse({ ...fallback, fallbackReason: 'oops' }).success).toBe(false);
+    const { fallbackReason: _omit, ...withoutField } = fallback;
+    expect(MemoSchema.safeParse(withoutField).success).toBe(false);
+  });
+});
+
+describe('출처', () => {
+  it('isClassifierSource는 CLASSIFIER_SOURCES의 값만 참이다', () => {
+    expect(isClassifierSource('rule')).toBe(true);
+    expect(isClassifierSource('clef-flash')).toBe(true);
+    expect(isClassifierSource('unknown')).toBe(false);
+    expect(isClassifierSource(1)).toBe(false);
   });
 });

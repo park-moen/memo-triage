@@ -29,6 +29,7 @@ export function classifyByRules(content: string): ClassifyResult {
         source: 'rule',
         scores: null,
         note: `키워드 '${matched}' 일치`,
+        fallbackReason: null,
       };
     }
   }
@@ -37,6 +38,7 @@ export function classifyByRules(content: string): ClassifyResult {
     source: 'rule',
     scores: null,
     note: '일치한 키워드 없음',
+    fallbackReason: null,
   };
 }
 

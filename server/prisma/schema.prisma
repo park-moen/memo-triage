@@ -15,7 +15,18 @@ model Memo {
   scores        Json?
   note          String?
   source        String
+  fallbackReason String?  @map("fallback_reason")
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("memos")
+}
+
+/// Cloudflare에 실제로 요청을 보낸 기록. 하루 호출 수(UTC)를 셀 때 쓴다.
+model ClefCall {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  outcome   String
+
+  @@index([createdAt])
+  @@map("clef_calls")
 }

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { MAX_CONTENT_LENGTH } from '@memo/shared';
 
 interface Props {
@@ -13,6 +13,13 @@ export function MemoInput({ onSubmit, disabled }: Props) {
   const length = [...content].length;
   const tooLong = length > MAX_CONTENT_LENGTH;
   const canSubmit = !disabled && length > 0 && !tooLong;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const wasDisabled = useRef(disabled);
+
+  useEffect(() => {
+    if (wasDisabled.current && !disabled) inputRef.current?.focus();
+    wasDisabled.current = disabled;
+  }, [disabled]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -23,10 +30,12 @@ export function MemoInput({ onSubmit, disabled }: Props) {
   return (
     <form className="memo-input" onSubmit={(event) => void handleSubmit(event)}>
       <input
+        ref={inputRef}
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder="떠오른 생각을 한 줄로 적어 보세요"
         aria-label="메모"
+        disabled={disabled}
       />
       <span className={tooLong ? 'counter over' : 'counter'}>
         {length}/{MAX_CONTENT_LENGTH}

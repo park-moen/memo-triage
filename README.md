@@ -1,6 +1,6 @@
 # 메모 분류함
 
-업무 중 떠오른 메모를 `할 일·아이디어·확인할 것·참고` 4칸 중 하나로 분류하는 사이드 프로젝트입니다. 2단계에서 Cloudflare Workers AI의 Clef-flash가 분류를 맡습니다. 지금(1단계)은 키워드 규칙 분류기로 동작합니다.
+업무 중 떠오른 메모를 `할 일·아이디어·확인할 것·참고` 4칸 중 하나로 분류하는 사이드 프로젝트입니다. Cloudflare Workers AI의 Clef-flash로 분류하고, 실패하거나 키가 없으면 키워드 규칙 분류기로 대체합니다.
 
 설계: `docs/superpowers/specs/2026-10-04-memo-classifier-design.md`
 
@@ -26,6 +26,19 @@ pnpm test                    # shared schema + server 단위 테스트
 pnpm -F server test:e2e:prepare      # 테스트 DB(memo_test)에 migration 적용
 pnpm test:e2e                # API 테스트
 ```
+
+## Clef-flash 연결
+
+`server/.env`에 Cloudflare 값을 넣으면 Clef-flash로 분류합니다. 비워 두면 규칙 분류기로 동작합니다(배지 `대체 규칙`, 이유 "API 키 없음").
+
+```dotenv
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=     # 권한: Workers AI Read·Edit만
+CLEF_DAILY_LIMIT=100      # 선택. 하루(UTC) 최대 호출 수
+```
+
+- `docker compose up`이 이 파일을 server 컨테이너에 넘깁니다. 값을 바꾸면 `docker compose up -d server`로 다시 띄웁니다.
+- 테스트(`pnpm test`, `pnpm test:e2e`)는 Cloudflare를 부르지 않습니다.
 
 ## 바꿨을 때 다시 띄우기
 

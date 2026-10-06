@@ -20,6 +20,10 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
+    # server/.env의 CLOUDFLARE_* 값을 넘긴다. 파일이 없어도 뜨고(규칙 분류기로 동작), DATABASE_URL은 아래 environment가 덮어쓴다.
+    env_file:
+      - path: ./server/.env
+        required: false
     environment:
       DATABASE_URL: postgresql://memo:memo@db:5432/memo
     ports:

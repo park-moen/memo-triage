@@ -168,3 +168,61 @@
 .move select {
   font-size: 0.8rem;
 }
+
+.badge.fallback {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.fallback-reason {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.memo-input input:disabled {
+  opacity: 0.6;
+}
+
+.scores {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.score {
+  display: grid;
+  grid-template-columns: 5.5em 1fr 3em;
+  align-items: center;
+  gap: 6px;
+}
+
+.score.top {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.score-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.score-fill {
+  display: block;
+  height: 100%;
+  background: var(--muted);
+}
+
+.score.top .score-fill {
+  background: var(--accent);
+}
+
+.score-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

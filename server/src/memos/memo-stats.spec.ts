@@ -32,4 +32,11 @@ describe('computeHitStats', () => {
       ]).rule.total,
     ).toBe(0);
   });
+
+  it('CLASSIFIER_SOURCES의 모든 출처를 0으로 시작한다', () => {
+    expect(Object.keys(computeHitStats([])).sort()).toEqual([
+      'clef-flash',
+      'rule',
+    ]);
+  });
 });

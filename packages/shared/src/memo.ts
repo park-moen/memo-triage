@@ -8,6 +8,23 @@ export const CLASSIFIER_SOURCES = ['rule', 'clef-flash'] as const;
 export const ClassifierSourceSchema = z.enum(CLASSIFIER_SOURCES);
 export type ClassifierSource = z.infer<typeof ClassifierSourceSchema>;
 
+export function isClassifierSource(value: unknown): value is ClassifierSource {
+  return (CLASSIFIER_SOURCES as readonly unknown[]).includes(value);
+}
+
+/** Clef-flash 대신 규칙 분류기로 분류한 이유. 1단계에서 규칙으로 분류한 메모는 null이다. */
+export const FALLBACK_REASONS = [
+  'timeout',
+  'network',
+  'invalid_response',
+  'auth',
+  'rate_limited',
+  'daily_limit',
+  'not_configured',
+] as const;
+export const FallbackReasonSchema = z.enum(FALLBACK_REASONS);
+export type FallbackReason = z.infer<typeof FallbackReasonSchema>;
+
 export const MAX_CONTENT_LENGTH = 200;
 
 /** 앞뒤 공백을 지운 뒤 1자 이상, 200자 이하. code point 기준으로 센다(Postgres VARCHAR(200)과 같은 기준). */
@@ -42,6 +59,7 @@ export const MemoSchema = z.object({
   scores: ScoresSchema.nullable(),
   note: z.string().nullable(),
   source: ClassifierSourceSchema,
+  fallbackReason: FallbackReasonSchema.nullable(),
   createdAt: z.string(),
 });
 export type Memo = z.infer<typeof MemoSchema>;
@@ -49,7 +67,12 @@ export type Memo = z.infer<typeof MemoSchema>;
 export const HitCountSchema = z.object({ hit: z.number().int(), total: z.number().int() });
 export type HitCount = z.infer<typeof HitCountSchema>;
 
-export const HitStatsSchema = z.object({ rule: HitCountSchema, 'clef-flash': HitCountSchema });
+export const HitStatsSchema = z.object(
+  Object.fromEntries(CLASSIFIER_SOURCES.map((source) => [source, HitCountSchema])) as Record<
+    ClassifierSource,
+    typeof HitCountSchema
+  >,
+);
 export type HitStats = z.infer<typeof HitStatsSchema>;
 
 export const MemoListResponseSchema = z.object({

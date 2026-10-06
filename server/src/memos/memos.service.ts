@@ -30,6 +30,7 @@ export class MemosService {
         scores: result.scores ?? Prisma.DbNull,
         note: result.note,
         source: result.source,
+        fallbackReason: result.fallbackReason,
       },
     });
     return toMemoDto(memo);
