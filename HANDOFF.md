@@ -101,6 +101,8 @@
    - 검증: shared 31개, server 단위 46개, e2e 17개(기존 11개 파일 무수정 + 새 6개), server·web build·lint. Docker를 처음부터 띄워 확인했다. 실제 Cloudflare 호출은 **합계 2번**(둘 다 `success`)이고, 확인하는 동안 server를 `CLEF_DAILY_LIMIT=5`로 띄워 앱이 5번을 넘기지 못하게 했다. 대체 경로는 `CLEF_DAILY_LIMIT=0`(오늘 호출 상한 도달)과 빈 토큰(API 키 없음)으로 확인했고, 1단계 형태 메모(`fallback_reason` null)는 `규칙` 배지로 보였다. 토큰·계정 ID 값은 branch 이력에 없다.
    - 진행 중 판정: 커밋 훅이 `🗃️`를 `db` type에만 허용해 7a2fcd4 제목은 계획 원안 `🗃️ db:`를 유지했다. Task 7은 코드(compose·README)만 subagent가 하고, 실제 호출 확인과 이 문서 갱신은 최종 리뷰 뒤 controller가 했다.
 
+3-7. **분류 오류 사례 issue form 추가 (2026-10-06):** `.github/ISSUE_TEMPLATE/misclassification.yml`을 PR #4로 `main`에 병합했다(0147270). 사례는 issue #2에 댓글로 모으지 않고 「분류 오류 사례」 템플릿으로 한 건씩 새 issue를 만들며, #2 본문 「진행 조건」도 이에 맞춰 고쳤다.
+
 ## 보안·비용 경계
 
 - 이전 Clef-flash API 토큰과 임시 실행기는 삭제됐다. 토큰 값을 문서·Git·handoff에 기록하지 않는다.
